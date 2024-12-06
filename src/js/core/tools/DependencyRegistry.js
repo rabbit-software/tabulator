@@ -1,82 +1,79 @@
 import CoreFeature from '../CoreFeature.js';
 
-export default class DependencyRegistry extends CoreFeature{
-	
-	constructor(table){
+export default class DependencyRegistry extends CoreFeature {
+
+	constructor(table) {
 		super(table);
-		
+
 		this.deps = {};
-		
-		this.props = {
-			
-		};
+		this.props = {};
 	}
-	
-	initialize(){
+
+	initialize() {
 		this.deps = Object.assign({}, this.options("dependencies"));
 	}
-	
-	lookup(key, prop, silent){
-		if(Array.isArray(key)){
+
+	lookup(key, prop, silent) {
+		if (Array.isArray(key)) {
 			for (const item of key) {
 				var match = this.lookup(item, prop, true);
 
-				if(match){
+				if (match) {
 					break;
 				}
 			}
 
-			if(match){
+			if (match) {
 				return match;
-			}else{
+			} else {
 				this.error(key);
 			}
-		}else{
-			if(prop){
+		} else {
+			if (prop) {
 				return this.lookupProp(key, prop, silent);
-			}else{
+			} else {
 				return this.lookupKey(key, silent);
 			}
 		}
 	}
-	
-	lookupProp(key, prop, silent){
+
+	lookupProp(key, prop, silent) {
 		var dependency;
-		
-		if(this.props[key] && this.props[key][prop]){
+
+		if (this.props[key] && this.props[key][prop]) {
 			return this.props[key][prop];
-		}else{
+		} else {
 			dependency = this.lookupKey(key, silent);
-			
-			if(dependency){
-				if(!this.props[key]){
+
+			if (dependency) {
+				if (!this.props[key]) {
 					this.props[key] = {};
 				}
-				
+
 				this.props[key][prop] = dependency[prop] || dependency;
 				return this.props[key][prop];
 			}
 		}
 	}
-	
-	lookupKey(key, silent){
+
+	lookupKey(key, silent) {
 		var dependency;
-		
-		if(this.deps[key]){
+
+		if (this.deps[key]) {
 			dependency = this.deps[key];
-		}else if(window[key]){
+		} else if (window[key]) {
 			this.deps[key] = window[key];
 			dependency = this.deps[key];
-		}else{
-			if(!silent){
+		} else {
+			if (!silent) {
 				this.error(key);
 			}
 		}
-		
+
 		return dependency;
 	}
 
-	error(key){
+	error(key) {
 		console.error("Unable to find dependency", key, "Please check documentation and ensure you have imported the required library into your project");
 	}
 }
